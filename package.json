@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "requirement": "^0.0.8",
+    "virtualenv": "^0.3.1"
+  }
+}
