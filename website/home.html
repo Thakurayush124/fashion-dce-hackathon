@@ -671,7 +671,7 @@
     <nav>
         <ul>
             <li><a href="#">Home</a></li>
-            <li><a href="login.html" class="button-link">Fashion AI</a></li>
+            <li><a href="http://127.0.0.1:5000/" class="button-link">Fashion AI</a></li>
         </ul>
     </nav>
     
@@ -1480,29 +1480,39 @@
 
     // Cart and Wishlist functions
     function addToCart(product, price) {
-        const existingItem = cart.find(item => item.product === product);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            // Find the image source for this product
-            const productElement = [...document.querySelectorAll('.clothing-item')].find(el => 
-                el.querySelector('h3').textContent === product
-            );
-            const imageSrc = productElement ? productElement.querySelector('img').src : '';
-            
-            cart.push({ 
-                product, 
-                price, 
-                image: imageSrc,
-                quantity: 1 
-            });
-        }
-        
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
-        showNotification('cart');
+    const existingItem = cart.find(item => item.product === product);
+    
+    // Find the product element and its image
+    const productElement = [...document.querySelectorAll('.clothing-item')].find(el => 
+        el.querySelector('h3').textContent === product
+    );
+    
+    // Get the image URL from the product element
+    const imageUrl = productElement ? productElement.querySelector('img').getAttribute('src') : '';
+    console.log(imageUrl)
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({ 
+            product: product, 
+            price: price, 
+            quantity: 1,
+            image: imageUrl // Add the image URL here
+        });
     }
+    
+    // Save to localStorage with the image URL
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+    showNotification('cart');
+    
+    // Debug log to verify image URL is being stored
+    console.log('Added to cart:', {
+        product,
+        price,
+        imageUrl
+    });
+}
 
     function addToWishlist(product) {
         // Find the product details

@@ -108,16 +108,35 @@
                         </div>
                     </div>
                 </a>
-                <div class="px-5 pb-5">
-                    <form action="{{ url_for('add_to_cart', product_id=item['id']) }}" method="POST">
+                <div class="px-5 pb-5 space-y-2">
+                    <!-- Add to Cart Button -->
+                    <form action="{{ url_for('add_to_cart', product_id=item['id']) }}" method="POST" class="mb-2">
                         <button type="submit" 
                                 class="w-full bg-gray-900 text-white py-2 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/>
                             </svg>
                             Add to Cart
                         </button>
                     </form>
+
+                    <!-- Try On Button -->
+                    <button onclick="openTryOn('{{ item.image }}')" 
+                            class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd"/>
+                        </svg>
+                        Try On
+                    </button>
+
+                    <!-- Buy Now Button -->
+                    <button onclick="proceedToCheckout('{{ item.id }}')"
+                            class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5 5a2 2 0 012-2h6a2 2 0 012 2v2h2a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2h2V5z" clip-rule="evenodd"/>
+                        </svg>
+                        Buy Now
+                    </button>
                 </div>
             </div>
             {% endfor %}
@@ -157,3 +176,4 @@
     </footer>
 </body>
 </html>
+``` 

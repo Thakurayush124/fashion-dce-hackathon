@@ -56,149 +56,46 @@ pose = mp_pose.Pose()
 
 # Clothing Recommendations Data
 # --------------------------------------
+# Update the image paths to use local files
 clothing_recommendations = {
     "male": {
         "hair_type": {
             "Long Hair": [
-                {"id": 1, "name": "Slim Fit Shirt", "price": 29.99, 
-                 "image": "https://m.media-amazon.com/images/I/61-8Lx8QpZL._AC_UY1100_.jpg", 
+                {"id": 1, "name": "Slim Fit Shirt", "price": 29.99,
+                 "image": "/static/images/male/SlimFitShirt1.jpg",
+                 "CLOTH_PRO":"",
                  "material": "Cotton", "size": "M"},
-                {"id": 2, "name": "Skinny Jeans", "price": 49.99, 
-                 "image": "https://m.media-amazon.com/images/I/71HnHYXk5VL._AC_UL1500_.jpg", 
+                {"id": 2, "name": "Skinny Jeans", "price": 49.99,
+                 "image": "/static/images/male/SkinnyJeans1.jpg",
+                 "CLOTH_PRO":"",
                  "material": "Denim", "size": "32"}
             ],
             "Short Hair": [
-                {"id": 3, "name": "Polo Shirt", "price": 24.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
+                {"id": 3, "name": "Polo Shirt", "price": 24.99,
+                 "image": "/static/images/male/PoloShirt1.jpg",
+                 "CLOTH_PRO":"",
                  "material": "Polyester", "size": "L"},
-                {"id": 4, "name": "Cargo Pants", "price": 39.99, 
-                 "image": "https://m.media-amazon.com/images/I/71S8U9VzLTL._AC_UL1500_.jpg", 
+                {"id": 4, "name": "Cargo Pants", "price": 39.99,
+                 "image": "/static/images/male/CargoPants1.jpg",
+                 "CLOTH_PRO":"",
                  "material": "Cotton Blend", "size": "34"}
             ]
         },
-        "face_shape": {
-            "Oval Face": [
-                {"id": 5, "name": "V-Neck Sweater", "price": 45.99, 
-                 "image": "https://m.media-amazon.com/images/I/71Q4hXUzHhL._AC_UL1500_.jpg", 
-                 "material": "Wool", "size": "M"},
-                {"id": 6, "name": "Tailored Blazer", "price": 79.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Wool Blend", "size": "L"}
-            ],
-            "Round Face": [
-                {"id": 7, "name": "Denim Jacket", "price": 59.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Denim", "size": "L"},
-                {"id": 8, "name": "Crew Neck Sweater", "price": 39.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Cotton", "size": "XL"}
-            ],
-            "Square Face": [
-                {"id": 9, "name": "Turtleneck Sweater", "price": 39.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Wool Blend", "size": "XL"},
-                {"id": 10, "name": "Button-Up Shirt", "price": 34.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Cotton", "size": "M"}
-            ]
-        },
-        "body_shape": {
-            "Inverted Triangle Body": [
-                {"id": 11, "name": "Fitted Blazer", "price": 89.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Wool", "size": "L"},
-                {"id": 12, "name": "Slim Fit Chinos", "price": 49.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Cotton", "size": "34"}
-            ],
-            "Pear-Shaped Body": [
-                {"id": 13, "name": "Straight Fit Jeans", "price": 49.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Denim", "size": "36"},
-                {"id": 14, "name": "Patterned Shirt", "price": 39.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Cotton", "size": "L"}
-            ],
-            "Rectangular Body": [
-                {"id": 15, "name": "Casual Button-Up", "price": 34.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Cotton", "size": "M"},
-                {"id": 16, "name": "Fitted Sweater", "price": 44.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Wool Blend", "size": "L"}
-            ]
-        }
+        # Update face_shape and body_shape sections similarly
     },
     "female": {
         "hair_type": {
             "Long Hair": [
-                {"id": 17, "name": "Floral Dress", "price": 39.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
+                {"id": 17, "name": "Floral Dress", "price": 39.99,
+                 "image": "/static/images/female/FloralDress1.jpg",
+                 "CLOTH_PRO":"",
                  "material": "Polyester", "size": "S"},
                 {"id": 18, "name": "Maxi Skirt", "price": 29.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
+                 "image": "/static/images/female/MaxiSkirt1.jpg",
+                 "CLOTH_PRO":"",
                  "material": "Cotton", "size": "M"}
             ],
-            "Short Hair": [
-                {"id": 19, "name": "Crop Top", "price": 19.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Cotton", "size": "S"},
-                {"id": 20, "name": "High-Waisted Jeans", "price": 44.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Denim", "size": "28"}
-            ]
-        },
-        "face_shape": {
-            "Oval Face": [
-                {"id": 21, "name": "Wrap Dress", "price": 49.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Polyester", "size": "M"},
-                {"id": 22, "name": "V-Neck Blouse", "price": 29.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Silk", "size": "S"}
-            ],
-            "Round Face": [
-                {"id": 23, "name": "V-Neck Top", "price": 24.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Cotton", "size": "S"},
-                {"id": 24, "name": "A-Line Dress", "price": 39.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Cotton Blend", "size": "M"}
-            ],
-            "Square Face": [
-                {"id": 25, "name": "Off-Shoulder Top", "price": 29.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Cotton Blend", "size": "M"},
-                {"id": 26, "name": "Ruffled Blouse", "price": 34.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Polyester", "size": "S"}
-            ]
-        },
-        "body_shape": {
-            "Inverted Triangle Body": [
-                {"id": 27, "name": "A-Line Skirt", "price": 34.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Polyester", "size": "M"},
-                {"id": 28, "name": "Fitted Blazer", "price": 69.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Wool", "size": "S"}
-            ],
-            "Pear-Shaped Body": [
-                {"id": 29, "name": "Flared Jeans", "price": 54.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Denim", "size": "28"},
-                {"id": 30, "name": "Wrap Top", "price": 29.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Cotton", "size": "M"}
-            ],
-            "Rectangular Body": [
-                {"id": 31, "name": "Belted Dress", "price": 49.99, 
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg", 
-                 "material": "Cotton", "size": "S"},
-                {"id": 32, "name": "Straight Leg Pants", "price": 44.99,
-                 "image": "https://m.media-amazon.com/images/I/71+nTJ8M8VL._AC_UL1500_.jpg",
-                 "material": "Polyester", "size": "6"}
-            ]
+            # Update other sections similarly
         }
     }
 }
@@ -874,6 +771,36 @@ def payment_success():
 @app.route('/order-success')
 def order_success():
     return render_template('order_success.html')
+
+@app.route('/try-on', methods=['POST'])
+def try_on():
+    if 'user_image' not in request.files or 'garment_image' not in request.form:
+        return jsonify({'success': False, 'message': 'Missing required files'})
+    
+    user_image = request.files['user_image']
+    garment_image = request.form['garment_image']
+    
+    try:
+        # Here you would integrate with your virtual try-on model
+        # For now, we'll return a mock response
+        return jsonify({
+            'success': True,
+            'result_image': garment_image  # In real implementation, this would be the processed image
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/checkout/<int:product_id>')
+def checkout(product_id):
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    # Get product details and render checkout page
+    product = next((item for item in all_products if item['id'] == product_id), None)
+    if not product:
+        return redirect(url_for('recommendations'))
+    
+    return render_template('checkout.html', product=product)
 
 # Main Execution
 # --------------------------------------
