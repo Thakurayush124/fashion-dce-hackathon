@@ -12,9 +12,21 @@ from flask_mail import Mail, Message
 import hmac
 import hashlib
 import mediapipe as mp
+from base64 import b64encode
+import requests
+from requests_toolbelt.multipart.encoder import MultipartEncoder
+import urllib.request
+from flask_cors import CORS
+import http.client
+import json
+from urllib.parse import urlencode
+# ... other imports ...
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
+API_KEY = 'cm9dnraqw0002jl04289e0ymz'  # New API key
 
 # Configuration
 # --------------------------------------
@@ -57,48 +69,193 @@ pose = mp_pose.Pose()
 # Clothing Recommendations Data
 # --------------------------------------
 # Update the image paths to use local files
+
+
 clothing_recommendations = {
     "male": {
         "hair_type": {
             "Long Hair": [
                 {"id": 1, "name": "Slim Fit Shirt", "price": 29.99,
-                 "image": "/static/images/male/SlimFitShirt1.jpg",
-                 "CLOTH_PRO":"",
+                 "image": "static/images/male/SlimFitShirt1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/SlimFitShirt1.jpg",
                  "material": "Cotton", "size": "M"},
                 {"id": 2, "name": "Skinny Jeans", "price": 49.99,
-                 "image": "/static/images/male/SkinnyJeans1.jpg",
-                 "CLOTH_PRO":"",
+                 "image": "static/images/male/SkinnyJeans1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/SkinnyJeans1.jpg",
                  "material": "Denim", "size": "32"}
             ],
             "Short Hair": [
                 {"id": 3, "name": "Polo Shirt", "price": 24.99,
-                 "image": "/static/images/male/PoloShirt1.jpg",
-                 "CLOTH_PRO":"",
+                 "image": "static/images/male/PoloShirt1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/PoloShirt1.jpg",
                  "material": "Polyester", "size": "L"},
                 {"id": 4, "name": "Cargo Pants", "price": 39.99,
-                 "image": "/static/images/male/CargoPants1.jpg",
-                 "CLOTH_PRO":"",
+                 "image": "static/images/male/CargoPants1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/CargoPants1.jpg",
                  "material": "Cotton Blend", "size": "34"}
             ]
         },
-        # Update face_shape and body_shape sections similarly
+        "face_shape": {
+            "Oval Face": [
+                {"id": 5, "name": "V-Neck Sweater", "price": 45.99,
+                 "image": "static/images/male/V-NeckSweater1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/V-NeckSweater1.jpg",
+                 "material": "Wool", "size": "M"},
+                {"id": 6, "name": "Tailored Blazer", "price": 79.99,
+                 "image": "static/images/male/TailoredBlazer1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/TailoredBlazer1.jpg",
+                 "material": "Wool Blend", "size": "L"}
+            ],
+            "Round Face": [
+                {"id": 7, "name": "Denim Jacket", "price": 59.99,
+                 "image": "static/images/male/DenimJacket1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/DenimJacket1.jpg",
+                 "material": "Denim", "size": "L"},
+                {"id": 8, "name": "Crew Neck Sweater", "price": 39.99,
+                 "image": "static/images/male/CrewNeckSweater1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/CrewNeckSweater1.jpg",
+                 "material": "Cotton", "size": "XL"}
+            ],
+            "Square Face": [
+                {"id": 9, "name": "Turtleneck Sweater", "price": 39.99,
+                 "image": "static/images/male/TurtleneckSweater1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/TurtleneckSweater1.jpg",
+                 "material": "Wool Blend", "size": "XL"},
+                {"id": 10, "name": "Button-Up Shirt", "price": 34.99,
+                 "image": "static/images/male/Button-UpShirt1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/Button-UpShirt1.jpg",
+                 "material": "Cotton", "size": "M"}
+            ]
+        },
+        "body_shape": {
+            "Inverted Triangle Body": [
+                {"id": 11, "name": "Fitted Blazer", "price": 89.99,
+                 "image": "static/images/male/FittedBlazer1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/FittedBlazer1.jpg",
+                 "material": "Wool", "size": "L"},
+                {"id": 12, "name": "Slim Fit Chinos", "price": 49.99,
+                 "image": "static/images/male/SlimFitChinos1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/SlimFitChinos1.jpg",
+                 "material": "Cotton", "size": "34"}
+            ],
+            "Pear-Shaped Body": [
+                {"id": 13, "name": "Straight Fit Jeans", "price": 49.99,
+                 "image": "static/images/male/StraightFitJeans1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/StraightFitJeans1.jpg",
+                 "material": "Denim", "size": "36"},
+                {"id": 14, "name": "Patterned Shirt", "price": 39.99,
+                 "image": "static/images/male/PatternedShirt1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/PatternedShirt1.jpg",
+                 "material": "Cotton", "size": "L"}
+            ],
+            "Rectangular Body": [
+                {"id": 15, "name": "Casual Button-Up", "price": 34.99,
+                 "image": "static/images/male/CasualButton-Up1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/CasualButton-Up1.jpg",
+                 "material": "Cotton", "size": "M"},
+                {"id": 16, "name": "Fitted Sweater", "price": 44.99,
+                 "image": "static/images/male/FittedSweater1.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/male/FittedSweater1.jpg",
+                 "material": "Wool Blend", "size": "L"}
+            ]
+        }
     },
     "female": {
         "hair_type": {
             "Long Hair": [
                 {"id": 17, "name": "Floral Dress", "price": 39.99,
-                 "image": "/static/images/female/FloralDress1.jpg",
-                 "CLOTH_PRO":"",
+                 "image": "static/images/floral_dress.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/floral_dress_pro.jpg",
                  "material": "Polyester", "size": "S"},
                 {"id": 18, "name": "Maxi Skirt", "price": 29.99,
-                 "image": "/static/images/female/MaxiSkirt1.jpg",
-                 "CLOTH_PRO":"",
+                 "image": "static/images/maxi_skirt.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/maxi_skirt_pro.jpg",
                  "material": "Cotton", "size": "M"}
             ],
-            # Update other sections similarly
+            "Short Hair": [
+                {"id": 19, "name": "Crop Top", "price": 19.99,
+                 "image": "static/images/crop_top.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/crop_top_pro.jpg",
+                 "material": "Cotton", "size": "S"},
+                {"id": 20, "name": "High-Waisted Jeans", "price": 44.99,
+                 "image": "static/images/high_waisted_jeans.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/high_waisted_jeans_pro.jpg",
+                 "material": "Denim", "size": "28"}
+            ]
+        },
+        "face_shape": {
+            "Oval Face": [
+                {"id": 21, "name": "Wrap Dress", "price": 49.99,
+                 "image": "static/images/wrap_dress.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/wrap_dress_pro.jpg",
+                 "material": "Polyester", "size": "M"},
+                {"id": 22, "name": "V-Neck Blouse", "price": 29.99,
+                 "image": "static/images/v_neck_blouse.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/v_neck_blouse_pro.jpg",
+                 "material": "Silk", "size": "S"}
+            ],
+            "Round Face": [
+                {"id": 23, "name": "V-Neck Top", "price": 24.99,
+                 "image": "static/images/v_neck_top.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/v_neck_top_pro.jpg",
+                 "material": "Cotton", "size": "S"},
+                {"id": 24, "name": "A-Line Dress", "price": 39.99,
+                 "image": "static/images/a_line_dress.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/a_line_dress_pro.jpg",
+                 "material": "Cotton Blend", "size": "M"}
+            ],
+            "Square Face": [
+                {"id": 25, "name": "Off-Shoulder Top", "price": 29.99,
+                 "image": "static/images/off_shoulder_top.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/off_shoulder_top_pro.jpg",
+                 "material": "Cotton Blend", "size": "M"},
+                {"id": 26, "name": "Ruffled Blouse", "price": 34.99,
+                 "image": "static/images/ruffled_blouse.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/ruffled_blouse_pro.jpg",
+                 "material": "Polyester", "size": "S"}
+            ]
+        },
+        "body_shape": {
+            "Inverted Triangle Body": [
+                {"id": 27, "name": "A-Line Skirt", "price": 34.99,
+                 "image": "static/images/a_line_skirt.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/a_line_skirt_pro.jpg",
+                 "material": "Polyester", "size": "M"},
+                {"id": 28, "name": "Fitted Blazer", "price": 69.99,
+                 "image": "static/images/fitted_blazer_f.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/fitted_blazer_f_pro.jpg",
+                 "material": "Wool", "size": "S"}
+            ],
+            "Pear-Shaped Body": [
+                {"id": 29, "name": "Flared Jeans", "price": 54.99,
+                 "image": "static/images/flared_jeans.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/flared_jeans_pro.jpg",
+                 "material": "Denim", "size": "28"},
+                {"id": 30, "name": "Wrap Top", "price": 29.99,
+                 "image": "static/images/wrap_top.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/wrap_top_pro.jpg",
+                 "material": "Cotton", "size": "M"}
+            ],
+            "Rectangular Body": [
+                {"id": 31, "name": "Belted Dress", "price": 49.99,
+                 "image": "static/images/belted_dress.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/belted_dress_pro.jpg",
+                 "material": "Cotton", "size": "S"},
+                {"id": 32, "name": "Straight Leg Pants", "price": 44.99,
+                 "image": "static/images/straight_leg_pants.jpg",
+                 "CLOTH_PRO": "static/cloth_pro/straight_leg_pants_pro.jpg",
+                 "material": "Polyester", "size": "6"}
+            ]
         }
     }
 }
+
+# Create all_products list
+all_products = []
+for gender in clothing_recommendations.values():
+    for category in gender.values():
+        for items in category.values():
+            all_products.extend(items)
 
 # Utility Functions
 # --------------------------------------
@@ -228,6 +385,7 @@ def signup():
 
         if existing_user:
             flash('Username already exists!')
+            return redirect(url_for('signup'))
         else:
             hashed_password = generate_password_hash(password)
             cursor.execute('INSERT INTO users (username, password) VALUES (%s, %s)', 
@@ -324,7 +482,7 @@ def gender_selection():
 
 @app.route('/home', methods=['GET', 'POST'])
 def home():
-    if 'logged_in' not in session or not session['logged_in']:
+    if 'logged_in' not in session:
         flash('Please log in to access the home page.')
         return redirect(url_for('login'))
 
@@ -342,6 +500,9 @@ def home():
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
+            
+            # Store the uploaded image path in session
+            session['user_uploaded_image'] = filepath
 
             image = cv2.imread(filepath)
             if image is None:
@@ -351,13 +512,15 @@ def home():
             hair_type = analyze_hair(image)
             face_shape = analyze_face(image)
             body_shape = analyze_body(image)
-            print(f"Analysis Results - Hair: {hair_type}, Face: {face_shape}, Body: {body_shape}")
+            
             session['hair_type'] = hair_type
             session['face_shape'] = face_shape
             session['body_shape'] = body_shape
 
-            return render_template('index.html', hair_type=hair_type, 
-                                face_shape=face_shape, body_shape=body_shape)
+            return render_template('index.html', 
+                                hair_type=hair_type, 
+                                face_shape=face_shape, 
+                                body_shape=body_shape)
 
     return render_template('index.html')
 
@@ -498,7 +661,11 @@ def add_to_wishlist(product_id):
 # --------------------------------------
 @app.route('/add_to_cart/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
+    if 'cart' not in session:
+        session['cart'] = []
+    
     product = None
+    # Find the product in recommendations
     for gender in clothing_recommendations.values():
         for category in gender.values():
             for items in category.values():
@@ -519,24 +686,33 @@ def add_to_cart(product_id):
             'name': product['name'],
             'price': float(product['price']),
             'image': product['image'],
-            'quantity': 1  
+            'quantity': 1
         }
 
-        if 'cart' not in session:
-            session['cart'] = []
-
+        # Check if item already exists in cart
+        item_exists = False
         for item in session['cart']:
             if item['id'] == product_id:
                 item['quantity'] += 1
+                item_exists = True
                 break
-        else:
+
+        if not item_exists:
             session['cart'].append(cart_item)
 
-        flash(f"{product['name']} has been added to your cart.")
-        return redirect(url_for('product_page', product_id=product_id))
-    else:
-        flash("Product not found.")
-        return redirect(url_for('recommendations'))
+        session.modified = True
+
+        return jsonify({
+            'success': True,
+            'message': f"{product['name']} has been added to your cart",
+            'cart_count': len(session['cart']),
+            'cart_total': sum(item['price'] * item['quantity'] for item in session['cart'])
+        })
+    
+    return jsonify({
+        'success': False,
+        'message': "Product not found"
+    }), 404
 
 @app.route('/update_quantity/<int:product_id>', methods=['POST'])
 def update_quantity(product_id):
@@ -585,6 +761,7 @@ def clear_cart():
 @app.route('/buy_now/<int:product_id>', methods=['POST'])
 def buy_now(product_id):
     product = None
+    # Find the product in recommendations
     for gender in clothing_recommendations.values():
         for category in gender.values():
             for items in category.values():
@@ -607,10 +784,10 @@ def buy_now(product_id):
             'image': product['image'],
             'quantity': 1
         }
-        return redirect(url_for('payment'))
-    else:
-        flash("Product not found.")
-        return redirect(url_for('product_page', product_id=product_id))
+        return redirect(url_for('checkout', product_id=product_id))
+    
+    flash("Product not found.")
+    return redirect(url_for('recommendations'))
 
 @app.route('/address', methods=['GET'])
 def address():
@@ -774,21 +951,112 @@ def order_success():
 
 @app.route('/try-on', methods=['POST'])
 def try_on():
-    if 'user_image' not in request.files or 'garment_image' not in request.form:
-        return jsonify({'success': False, 'message': 'Missing required files'})
-    
-    user_image = request.files['user_image']
-    garment_image = request.form['garment_image']
-    
+    if 'user_image' not in request.files:
+        return jsonify({'success': False, 'message': 'No file uploaded'})
+
     try:
-        # Here you would integrate with your virtual try-on model
-        # For now, we'll return a mock response
+        user_image = request.files['user_image']
+        clothes_image = request.form.get('clothes_image')
+
+        if not user_image or not clothes_image:
+            return jsonify({'success': False, 'message': 'Missing required images'})
+
+        # Create multipart form data
+        encoder = MultipartEncoder(
+            fields={
+                'task_type': 'async',
+                'clothes_type': 'upper_body',
+                'person_image': ('person.jpg', user_image.stream, 'image/jpeg'),
+                'clothes_image': ('clothes.jpg', open(clothes_image.lstrip('/'), 'rb'), 'image/jpeg')
+            }
+        )
+
+        # Make API request
+        print("Making try-on API request...")
+        response = requests.post(
+            'https://prod.api.market/api/v1/ailabtools/try-on-clothes/portrait/editing/try-on-clothes',
+            data=encoder,
+            headers={
+                'x-magicapi-key': API_KEY,
+                'Content-Type': encoder.content_type,
+                'accept': 'application/json'
+            },
+            timeout=30
+        )
+
+        # Print response for debugging
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Headers: {response.headers}")
+        print(f"Response Body: {response.text}")
+
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('error_code') == 0:
+                return jsonify({
+                    'success': True,
+                    'task_id': data.get('task_id'),
+                    'request_id': data.get('request_id')
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': data.get('error_msg', 'API returned an error'),
+                    'error_code': data.get('error_code')
+                })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'API request failed with status {response.status_code}',
+                'response': response.text
+            })
+
+    except Exception as e:
+        print(f"Try-on error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'message': f'Server error: {str(e)}'
+        })
+
+@app.route('/check-try-on-status/<task_id>')
+def check_try_on_status(task_id):
+    try:
+        print(f"Checking status for task: {task_id}")
+        
+        # Use http.client for the request
+        conn = http.client.HTTPSConnection("prod.api.market")
+        headers = {
+            'x-magicapi-key': API_KEY,
+        }
+        
+        query_path = f"/api/v1/ailabtools/try-on-clothes/api/apimarket/query-async-task-result?task_id={task_id}"
+        
+        # Make the request
+        conn.request("GET", query_path, headers=headers)
+        response = conn.getresponse()
+        data = json.loads(response.read().decode('utf-8'))
+        
+        # Print full response for debugging
+        print("Full API Response:")
+        print(json.dumps(data, indent=2))
+
         return jsonify({
             'success': True,
-            'result_image': garment_image  # In real implementation, this would be the processed image
+            'status': data.get('task_status', 'unknown'),
+            'result': data.get('result'),
+            'error_code': data.get('error_code'),
+            'task_id': task_id,
+            'raw_response': data  # Include raw response for debugging
         })
+
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
+        print(f"Status check error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Status check error: {str(e)}',
+            'task_id': task_id
+        })
 
 @app.route('/checkout/<int:product_id>')
 def checkout(product_id):
@@ -805,4 +1073,4 @@ def checkout(product_id):
 # Main Execution
 # --------------------------------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=True, port=5000)

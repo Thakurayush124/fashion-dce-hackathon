@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -25,6 +25,7 @@
             top: 20px;
             left: 20px;
             z-index: 1000;
+             /* Tailwind's blue-500 */
         }
     </style>
 </head>
@@ -48,7 +49,7 @@
                        class="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                        placeholder="Type your message here...">
                 <button onclick="sendMessage()" 
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        class="bg-[#ff3e6c] hover:bg-[#ff2e5c] text-white font-bold py-2 px-4 rounded">
                     Send
                 </button>
             </div>
@@ -138,6 +139,319 @@
         });
 
         console.log('Chatbot initialization complete');
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion AI Chatbot | FashionFusion</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .chat-container {
+            height: 70vh;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+            border-radius: 18px 18px 0 18px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease-out;
+        }
+        .bot-message {
+            background-color: #f8f9fa;
+            margin-right: auto;
+            border-radius: 18px 18px 18px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease-out;
+        }
+        .typing-indicator {
+            display: flex;
+            padding: 8px 12px;
+            background-color: #f8f9fa;
+            border-radius: 18px;
+            margin-right: auto;
+            width: fit-content;
+        }
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            background-color: #6c757d;
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .input-container {
+            position: relative;
+        }
+        
+        .suggestions-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .suggestion-chip {
+            background-color: #f0f4f8;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .suggestion-chip:hover {
+            background-color: #d6e4f0;
+        }
+        
+        .send-button {
+            transition: all 0.2s;
+        }
+        
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <a href="/website/home.html" class="fixed top-4 left-4 z-50 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200 flex items-center gap-2">
+        <i class="fas fa-chevron-left"></i>
+        <span>Home</span>
+    </a>
+
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Fashion AI Assistant</h1>
+            <p class="text-gray-600">Get personalized fashion advice instantly</p>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-pink-500 to-rose-500">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-rose-500">
+                        <i class="fas fa-robot text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-white font-semibold">StyleBot</h2>
+                        <p class="text-white text-opacity-80 text-sm">Online</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4">
+                <div class="chat-container mb-4" id="chatContainer">
+                    <div class="bot-message p-4 mb-4 max-w-[85%]">
+                        <div class="font-medium text-gray-700 mb-1">StyleBot</div>
+                        <div class="text-gray-800">Hello! 👋 I'm FashionFusion's AI assistant, here to help you with style advice and shopping recommendations! How can I help you today?</div>
+                    </div>
+                </div>
+
+                <div class="suggestions-container">
+                    <div class="suggestion-chip" onclick="insertSuggestion('What should I wear for a job interview?')">Job interview</div>
+                    <div class="suggestion-chip" onclick="insertSuggestion('Summer outfit ideas')">Summer outfits</div>
+                    <div class="suggestion-chip" onclick="insertSuggestion('How to style denim jacket?')">Denim jacket</div>
+                    <div class="suggestion-chip" onclick="insertSuggestion('Best colors for my skin tone')">Color advice</div>
+                </div>
+                
+                <div class="input-container flex gap-2">
+                    <input type="text" id="userInput" 
+                           class="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+                           placeholder="Ask about outfits, trends, or styling..."
+                           aria-label="Type your fashion question">
+                    <button id="sendButton" onclick="sendMessage()" 
+                            class="send-button bg-rose-500 hover:bg-rose-600 text-white rounded-full w-12 h-12 flex items-center justify-center transition-all">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Configuration
+        const config = {
+            API_KEY: "cm9ctn5650008kw04u5slrfqd",
+            API_URL: "https://api.magicapi.dev/api/v2/bridgeml/llm/llm/chat/completions",
+            MODEL: "llama-3.1-8b-instant",
+            MAX_TOKENS: 150,
+            TYPING_DELAY: 1000 // ms to show typing indicator
+        };
+        
+        // System prompt with fashion expertise
+        const FASHION_PROMPT = `You are StyleBot, FashionFusion's fashion assistant. Provide concise, friendly fashion advice. Follow these rules:
+        
+        1. Keep responses under 75 words unless detailed explanation is requested
+        2. Stay strictly on fashion topics (outfits, styling, trends, shopping)
+        3. Use emojis sparingly to enhance communication
+        4. Offer specific recommendations when possible
+        5. For non-fashion questions, politely redirect
+        6. Use bullet points for lists
+        7. Maintain a helpful, professional tone
+        
+        First response: "Hello! 👋 I'm FashionFusion's AI assistant, here to help you with style advice and shopping recommendations! How can I help you today?"`;
+        
+        // DOM elements
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        
+        // Initialize chatbot
+        function initChatbot() {
+            console.log('Initializing Fashion AI Chatbot...');
+            setupEventListeners();
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Handle Enter key press
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Disable send button when input is empty
+            userInput.addEventListener('input', () => {
+                sendButton.disabled = userInput.value.trim() === '';
+            });
+            
+            // Initial state
+            sendButton.disabled = true;
+        }
+        
+        // Send message to chatbot
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            
+            if (message) {
+                addMessage('user', message);
+                userInput.value = '';
+                sendButton.disabled = true;
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                try {
+                    const response = await getBotResponse(message);
+                    removeTypingIndicator();
+                    addMessage('bot', response);
+                } catch (error) {
+                    console.error('Error:', error);
+                    removeTypingIndicator();
+                    addMessage('bot', "Sorry, I'm having trouble connecting. Please try again later.");
+                }
+            }
+        }
+        
+        // Get response from AI API
+        async function getBotResponse(message) {
+            console.log('Fetching bot response...');
+            
+            const response = await axios.post(config.API_URL, {
+                messages: [
+                    { role: 'system', content: FASHION_PROMPT },
+                    { role: 'user', content: message }
+                ],
+                model: config.MODEL,
+                max_tokens: config.MAX_TOKENS
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${config.API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('API response:', response.data);
+            
+            if (response.data?.choices?.[0]?.message?.content) {
+                return response.data.choices[0].message.content;
+            }
+            
+            throw new Error('Invalid API response structure');
+        }
+        
+        // Add message to chat
+        function addMessage(type, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type}-message p-4 mb-4 max-w-[85%]`;
+            
+            if (type === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="font-medium text-gray-700 mb-1">You</div>
+                    <div class="text-gray-800">${message}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="font-medium text-gray-700 mb-1">StyleBot</div>
+                    <div class="text-gray-800">${message}</div>
+                `;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        // Show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'typing-indicator mb-4';
+            typingDiv.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            chatContainer.appendChild(typingDiv);
+            scrollToBottom();
+        }
+        
+        // Remove typing indicator
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+        
+        // Scroll to bottom of chat
+        function scrollToBottom() {
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+        
+        // Insert suggestion into input
+        function insertSuggestion(text) {
+            userInput.value = text;
+            userInput.focus();
+            sendButton.disabled = false;
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initChatbot);
     </script>
 </body>
 </html>

@@ -30,11 +30,9 @@
     <div class="fixed top-5 right-5 z-50">
         <a href="{{ url_for('view_cart') }}" class="bg-white p-3 rounded-full shadow-lg flex items-center justify-center">
             <img src="https://cdn-icons-png.flaticon.com/512/833/833314.png" alt="Shopping Cart" class="w-8 h-8">
-            {% if 'cart' in session and session['cart'] %}
-                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {{ session['cart']|length }}
-                </span>
-            {% endif %}
+            <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {{ session.get('cart', [])|length }}
+            </span>
         </a>
     </div>
 
@@ -110,32 +108,22 @@
                 </a>
                 <div class="px-5 pb-5 space-y-2">
                     <!-- Add to Cart Button -->
-                    <form action="{{ url_for('add_to_cart', product_id=item['id']) }}" method="POST" class="mb-2">
-                        <button type="submit" 
-                                class="w-full bg-gray-900 text-white py-2 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/>
-                            </svg>
-                            Add to Cart
-                        </button>
-                    </form>
-
+                    <button onclick="addToCart('{{ item.id }}', '{{ item.name }}')" 
+                            class="w-full bg-gray-900 text-white py-2 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/>
+                        </svg>
+                        Add to Cart
+                    </button>
+                    
                     <!-- Try On Button -->
-                    <button onclick="openTryOn('{{ item.image }}')" 
+                    <button onclick="openTryOn('{{ item.image }}', '{{ item.id }}')" 
                             class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd"/>
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
                         </svg>
                         Try On
-                    </button>
-
-                    <!-- Buy Now Button -->
-                    <button onclick="proceedToCheckout('{{ item.id }}')"
-                            class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5 5a2 2 0 012-2h6a2 2 0 012 2v2h2a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2h2V5z" clip-rule="evenodd"/>
-                        </svg>
-                        Buy Now
                     </button>
                 </div>
             </div>
@@ -174,6 +162,390 @@
             </div>
         </div>
     </footer>
+
+    <script>
+    function addToCart(productId, productName) {
+        fetch(`/add_to_cart/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count
+                const cartCount = document.getElementById('cart-count');
+                if (cartCount) {
+                    cartCount.textContent = data.cart_count;
+                    cartCount.style.display = 'flex';
+                }
+                
+                // Show success notification
+                showNotification(`${productName} added to cart`, 'success');
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error adding item to cart', 'error');
+        });
+    }
+
+    function updateCartCount(count) {
+        const cartCount = document.querySelector('#cart-count');
+        if (cartCount) {
+            cartCount.textContent = count;
+            cartCount.style.display = count > 0 ? 'flex' : 'none';
+        }
+    }
+
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg ${
+            type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        } text-white text-sm z-50 transition-opacity duration-500`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        // Fade in
+        notification.style.opacity = '0';
+        setTimeout(() => notification.style.opacity = '1', 10);
+
+        // Fade out and remove
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 500);
+        }, 3000);
+    }
+
+    // Update the openTryOn function to include product ID
+    let currentGarmentImage = '';
+    let currentProductId = null;
+
+    function openTryOn(garmentImage, productId) {
+        console.log('Opening try-on modal with:', {
+            garmentImage: garmentImage,
+            productId: productId
+        });
+        currentGarmentImage = garmentImage;
+        currentProductId = productId;
+        document.getElementById('tryOnModal').classList.remove('hidden');
+    }
+
+    function closeTryOn() {
+        document.getElementById('tryOnModal').classList.add('hidden');
+        
+        // Reset the preview image and drop zone
+        const previewImage = document.getElementById('previewImage');
+        const dropZone = document.getElementById('dropZone');
+        const resultArea = document.getElementById('resultArea');
+        
+        // Reset the file input
+        document.getElementById('userImage').value = '';
+        
+        // Hide preview, show drop zone
+        previewImage.classList.add('hidden');
+        dropZone.classList.remove('hidden');
+        
+        // Reset the result area
+resultArea.innerHTML = '<p class="text-gray-500">Try-on result will appear here</p>';
+
+        // Reset current garment and product ID
+        currentGarmentImage = '';
+        currentProductId = null;
+    }
+
+    async function pollTryOnResult(taskId, attempts = 0) {
+        console.log(`Polling attempt ${attempts + 1} for task: ${taskId}`);
+
+        if (attempts >= 10) {
+            document.getElementById('resultArea').innerHTML = `
+                <div class="text-center">
+                    <p class="text-red-500 mb-2">Maximum polling attempts reached.</p>
+                    <p class="text-gray-500">Task ID: ${taskId}</p>
+                    <button onclick="pollTryOnResult('${taskId}', 0)" 
+                            class="mt-4 bg-[#ff3e6c] hover:bg-[#ff2e5c] text-white px-4 py-2 rounded-lg">
+                        Try Again
+                    </button>
+                </div>`;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/check-try-on-status/${taskId}`);
+            const result = await response.json();
+            
+            // Log full response
+            console.log("Poll response:", result);
+
+            // Show debugging information
+            const debugInfo = `
+                <div class="text-xs font-mono bg-gray-100 p-2 rounded mt-2">
+                    <p>Task ID: ${taskId}</p>
+                    <p>Status: ${result.status}</p>
+                    <p>Raw Response: ${JSON.stringify(result.raw_response, null, 2)}</p>
+                </div>
+            `;
+
+            if (result.status === 'completed' && result.result && result.result.output_url) {
+                // Show the final image result
+                document.getElementById('resultArea').innerHTML = `
+                    <div class="text-center">
+                        <img src="${result.result.output_url}" 
+                             alt="Try-on result" 
+                             class="w-full h-auto rounded-lg shadow-lg">
+                        ${debugInfo}
+                    </div>`;
+            } else if (result.error_code && result.error_code !== 0) {
+                // Show error state
+                document.getElementById('resultArea').innerHTML = `
+                    <div class="text-center">
+                        <p class="text-red-500 mb-2">Error occurred</p>
+                        ${debugInfo}
+                        <button onclick="pollTryOnResult('${taskId}', 0)" 
+                                class="mt-4 bg-[#ff3e6c] hover:bg-[#ff2e5c] text-white px-4 py-2 rounded-lg">
+                            Retry
+                        </button>
+                    </div>`;
+            } else {
+                // Show loading state and continue polling
+                document.getElementById('resultArea').innerHTML = `
+                    <div class="text-center p-4">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff3e6c] mx-auto mb-4"></div>
+                        <p class="mb-2">Processing your virtual try-on...</p>
+                        <p class="text-sm text-gray-500">Attempt ${attempts + 1}/10</p>
+                        ${debugInfo}
+                    </div>`;
+                
+                // Wait 3 seconds before next poll
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                pollTryOnResult(taskId, attempts + 1);
+            }
+        } catch (error) {
+            console.error("Polling error:", error);
+            document.getElementById('resultArea').innerHTML = `
+                <div class="text-center">
+                    <p class="text-red-500 mb-2">Connection error</p>
+                    <p class="text-gray-500">Task ID: ${taskId}</p>
+                    <p class="text-xs text-gray-500">${error.toString()}</p>
+                    <button onclick="pollTryOnResult('${taskId}', 0)" 
+                            class="mt-4 bg-[#ff3e6c] hover:bg-[#ff2e5c] text-white px-4 py-2 rounded-lg">
+                        Retry
+                    </button>
+                </div>`;
+        }
+    }
+
+    async function performTryOn() {
+        console.log("Starting try-on process");
+        const userImage = document.querySelector('#userImage').files[0];
+        if (!userImage) {
+            alert('Please upload your photo first');
+            return;
+        }
+
+        // Show loading state
+        document.getElementById('resultArea').innerHTML = `
+            <div class="text-center p-4">
+                <p class="mb-4">Starting try-on process...</p>
+                <div class="loader"></div>
+            </div>`;
+
+        const formData = new FormData();
+        formData.append('user_image', userImage);
+        formData.append('clothes_image', currentGarmentImage);
+
+        try {
+            const response = await fetch('/try-on', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            console.log("Try-on response:", result);
+
+            if (result.success && result.task_id) {
+                // Start polling for results
+                pollTryOnResult(result.task_id);
+            } else {
+                document.getElementById('resultArea').innerHTML = 
+                    `<p class="text-red-500">${result.error_msg || 'Try-on failed. Please try again.'}</p>`;
+            }
+        } catch (error) {
+            console.error("Try-on error:", error);
+            document.getElementById('resultArea').innerHTML = 
+                '<p class="text-red-500">An error occurred. Please try again.</p>';
+        }
+    }
+
+    // Update the handleImage function with more logging
+    function handleImage(file) {
+        console.log("=== Handling Image Upload ===");
+        if (!file) {
+            console.error('No file provided to handleImage');
+            return;
+        }
+
+        console.log("File details:", {
+            name: file.name,
+            type: file.type,
+            size: `${(file.size / 1024).toFixed(2)} KB`,
+            lastModified: new Date(file.lastModified).toISOString()
+        });
+
+        if (!file.type.startsWith('image/')) {
+            console.error('Invalid file type:', file.type);
+            alert('Please upload an image file');
+            return;
+        }
+
+        const preview = document.getElementById('previewImage');
+        const dropZone = document.getElementById('dropZone');
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            console.log("File read successfully, updating preview");
+            try {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                dropZone.classList.add('hidden');
+                console.log("Preview updated successfully");
+            } catch (error) {
+                console.error('Error updating preview:', error);
+                alert('Error displaying image preview');
+            }
+        };
+
+        reader.onerror = function(error) {
+            console.error('FileReader error:', error);
+            alert('Error reading the image file');
+        };
+
+        try {
+            console.log("Starting file read...");
+            reader.readAsDataURL(file);
+        } catch (error) {
+            console.error('File reading error:', error);
+            alert('Error processing image');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropZone = document.getElementById('dropZone');
+        const userImage = document.getElementById('userImage');
+
+        if (!dropZone || !userImage) {
+            console.error('Required elements not found');
+            return;
+        }
+
+        // File input change handler
+        userImage.addEventListener('change', function(e) {
+            console.log('File input change detected');
+            if (e.target.files && e.target.files[0]) {
+                handleImage(e.target.files[0]);
+            }
+        });
+
+        // Drop zone click handler
+        dropZone.addEventListener('click', () => {
+            console.log('Drop zone clicked');
+            userImage.click();
+        });
+
+        // Drag and drop handlers
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('border-blue-500');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('border-blue-500');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('border-blue-500');
+            
+            const dt = e.dataTransfer;
+            if (dt.files && dt.files[0]) {
+                console.log('File dropped:', dt.files[0].name);
+                handleImage(dt.files[0]);
+            }
+        });
+    });
+    </script>
+    <!-- Add this before closing body tag -->
+<div id="tryOnModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-auto mt-20 relative">
+        <!-- Close button -->
+        <button onclick="closeTryOn()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+
+        <h2 class="text-2xl font-bold mb-4">Virtual Try On</h2>
+        
+        <!-- Image upload area -->
+        <div class="grid grid-cols-2 gap-4">
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                <input type="file" id="userImage" accept="image/*" class="hidden">
+                <div id="dropZone" class="text-center cursor-pointer">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p class="mt-1">Drop your photo here or click to upload</p>
+                </div>
+                <img id="previewImage" class="hidden w-full h-64 object-contain" alt="Preview">
+            </div>
+
+            <!-- Result area -->
+            <div class="border rounded-lg p-4">
+                <div id="resultArea" class="w-full h-64 flex items-center justify-center">
+                    <p class="text-gray-500">Try-on result will appear here</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Try-on button -->
+        <div class="mt-4 flex justify-end">
+            <button onclick="performTryOn()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Try On
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set up drag and drop
+const dropZone = document.getElementById('dropZone');
+const userImage = document.getElementById('userImage');
+
+dropZone.addEventListener('click', () => userImage.click());
+userImage.addEventListener('change', (e) => handleImage(e.target.files[0]));
+
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-blue-500');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('border-blue-500');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-blue-500');
+    handleImage(e.dataTransfer.files[0]);
+});
+</script>       
 </body>
 </html>
-``` 
