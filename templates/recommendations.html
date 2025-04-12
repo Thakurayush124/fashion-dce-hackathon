@@ -278,59 +278,51 @@ resultArea.innerHTML = '<p class="text-gray-500">Try-on result will appear here<
             const response = await fetch(`/check-try-on-status/${taskId}`);
             const result = await response.json();
             
-            // Log full response
             console.log("Poll response:", result);
 
-            // Show debugging information
-            const debugInfo = `
-                <div class="text-xs font-mono bg-gray-100 p-2 rounded mt-2">
-                    <p>Task ID: ${taskId}</p>
-                    <p>Status: ${result.status}</p>
-                    <p>Raw Response: ${JSON.stringify(result.raw_response, null, 2)}</p>
-                </div>
-            `;
-
-            if (result.status === 'completed' && result.result && result.result.output_url) {
-                // Show the final image result
+            // Check if we have a successful response with image URL
+            if (result.raw_response?.data?.image) {
+                // Image URL found, display it and stop polling
                 document.getElementById('resultArea').innerHTML = `
                     <div class="text-center">
-                        <img src="${result.result.output_url}" 
+                        <img src="${result.raw_response.data.image}" 
                              alt="Try-on result" 
-                             class="w-full h-auto rounded-lg shadow-lg">
-                        ${debugInfo}
+                             class="w-full h-auto rounded-lg shadow-lg mb-2">
+                        <p class="text-sm text-green-500">Virtual try-on complete!</p>
+                        <p class="text-xs text-gray-500 mt-1">Task ID: ${taskId}</p>
                     </div>`;
-            } else if (result.error_code && result.error_code !== 0) {
-                // Show error state
+                return; // Stop polling as we have the result
+            }
+            
+            // If status is 2 (completed) but no image, show error
+            if (result.raw_response?.data?.task_status === 2) {
                 document.getElementById('resultArea').innerHTML = `
                     <div class="text-center">
-                        <p class="text-red-500 mb-2">Error occurred</p>
-                        ${debugInfo}
-                        <button onclick="pollTryOnResult('${taskId}', 0)" 
-                                class="mt-4 bg-[#ff3e6c] hover:bg-[#ff2e5c] text-white px-4 py-2 rounded-lg">
-                            Retry
-                        </button>
+                        <p class="text-red-500 mb-2">Try-on completed but no image received.</p>
+                        <p class="text-gray-500">Task ID: ${taskId}</p>
                     </div>`;
-            } else {
-                // Show loading state and continue polling
-                document.getElementById('resultArea').innerHTML = `
-                    <div class="text-center p-4">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff3e6c] mx-auto mb-4"></div>
-                        <p class="mb-2">Processing your virtual try-on...</p>
-                        <p class="text-sm text-gray-500">Attempt ${attempts + 1}/10</p>
-                        ${debugInfo}
-                    </div>`;
-                
-                // Wait 3 seconds before next poll
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                pollTryOnResult(taskId, attempts + 1);
+                return;
             }
+
+            // Continue polling if still processing
+            document.getElementById('resultArea').innerHTML = `
+                <div class="text-center p-4">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff3e6c] mx-auto mb-4"></div>
+                    <p class="mb-2">Processing your virtual try-on...</p>
+                    <p class="text-sm text-gray-500">Attempt ${attempts + 1}/10</p>
+                    <p class="text-xs text-gray-500">Task ID: ${taskId}</p>
+                </div>`;
+            
+            // Wait 3 seconds before next attempt
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            pollTryOnResult(taskId, attempts + 1);
+
         } catch (error) {
             console.error("Polling error:", error);
             document.getElementById('resultArea').innerHTML = `
                 <div class="text-center">
-                    <p class="text-red-500 mb-2">Connection error</p>
+                    <p class="text-red-500 mb-2">Error checking try-on status</p>
                     <p class="text-gray-500">Task ID: ${taskId}</p>
-                    <p class="text-xs text-gray-500">${error.toString()}</p>
                     <button onclick="pollTryOnResult('${taskId}', 0)" 
                             class="mt-4 bg-[#ff3e6c] hover:bg-[#ff2e5c] text-white px-4 py-2 rounded-lg">
                         Retry
@@ -549,3 +541,4 @@ dropZone.addEventListener('drop', (e) => {
 </script>       
 </body>
 </html>
+`

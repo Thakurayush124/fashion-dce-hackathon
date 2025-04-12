@@ -1024,7 +1024,6 @@ def check_try_on_status(task_id):
     try:
         print(f"Checking status for task: {task_id}")
         
-        # Use http.client for the request
         conn = http.client.HTTPSConnection("prod.api.market")
         headers = {
             'x-magicapi-key': API_KEY,
@@ -1032,23 +1031,40 @@ def check_try_on_status(task_id):
         
         query_path = f"/api/v1/ailabtools/try-on-clothes/api/apimarket/query-async-task-result?task_id={task_id}"
         
-        # Make the request
         conn.request("GET", query_path, headers=headers)
         response = conn.getresponse()
         data = json.loads(response.read().decode('utf-8'))
         
-        # Print full response for debugging
         print("Full API Response:")
         print(json.dumps(data, indent=2))
 
-        return jsonify({
-            'success': True,
-            'status': data.get('task_status', 'unknown'),
-            'result': data.get('result'),
-            'error_code': data.get('error_code'),
-            'task_id': task_id,
-            'raw_response': data  # Include raw response for debugging
-        })
+        # Check if we have a completed task with image
+        if data.get('task_status') == 2 and data.get('data', {}).get('image'):
+            return jsonify({
+                'success': True,
+                'status': 'completed',
+                'image_url': data['data']['image'],
+                'task_id': task_id,
+                'raw_response': data
+            })
+        # Still processing
+        elif data.get('task_status') == 1:
+            return jsonify({
+                'success': True,
+                'status': 'processing',
+                'task_id': task_id,
+                'raw_response': data
+            })
+        # Error or unknown state
+        else:
+            return jsonify({
+                'success': False,
+                'status': 'error',
+                'error_code': data.get('error_code'),
+                'error_msg': data.get('error_msg', 'Unknown error'),
+                'task_id': task_id,
+                'raw_response': data
+            })
 
     except Exception as e:
         print(f"Status check error: {str(e)}")
